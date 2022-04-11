@@ -7,6 +7,7 @@ const rl = readline.createInterface(
 );
 
 const fs = require('fs');
+const { mainModule } = require('process');
 fs.writeFileSync('game.txt','Игра началась')
 
 function myLog(file, string) {
@@ -15,47 +16,45 @@ function myLog(file, string) {
 
 let count = 1;
 let n = Math.floor(Math.random() * 1000);
+console.log('Случайное число: '+ n);
 
-
-async function game() {
-  rl.question ('Угадай число от 0 до 1000\n', function (data){
-    console.log('Случайное число: '+ n);
-    data = parseInt(data);
-    console.log(`---Попытка ${count}---`);
-    myLog('game.txt', (`Попытка ${count}\n`)); 
-    evaluateAnswer(data) 
-    });
+function game() {
+  return new Promise((resolve, reject) => {
+    rl.question('Угадай число от 0 до 1000\n', data => {
+      data = parseInt(data);
+      console.log(`---Попытка ${count}---`);
+      myLog('game.txt', (`Попытка ${count}\n`));
+      if (data == n) {
+        resolve(console.log ('Поздравляю! Вы угалали число!'));
+        myLog('game.txt', (data+'- Поздравляю! Вы угалали число!'));
+        rl.close();
+      } else if (data > n) {
+        resolve(console.log('Вы ввели число больше.'));
+        myLog('game.txt', (data+'- Вы ввели число больше.'));
+        ++count;
+        game();
+      } else if (data < n) {
+       resolve(console.log('Вы ввели число меньше.'));
+        myLog('game.txt', (data+'- Вы ввели число меньше.'));
+        ++count;
+        game();
+      } else if (isNaN(data)) {
+        reject(console.log('Вы ввели не число!!!'));
+        game();
+      }
+    });  
+  });
 }
-
-
-function evaluateAnswer(data){
-  if (data == n) {
-    console.log ('Поздравляю! Вы угалали число!');
-    myLog('game.txt', (data+'- Поздравляю! Вы угалали число!'));
-    rl.close();
-  } else if (data > n) {
-    console.log('Вы ввели число больше.');
-    myLog('game.txt', (data+'- Вы ввели число больше.'));
-    ++count;
-    game();
-  } else if (data < n) {
-    console.log('Вы ввели число меньше.');
-    myLog('game.txt', (data+'- Вы ввели число меньше.'));
-    ++count;
-    game();
-  } 
-}
-
 
 async function main() {
-  console.log('Давай сыграем в игру?');
-
-  try {
+  try{
     await game();
-  } catch (error) {
-    console.error('Ошибка', error);
+  } catch(error){
+    console.log('Ввведите число!');
   }
 }
 
+    
+main()
 
-main();
+
